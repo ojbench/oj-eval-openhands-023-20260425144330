@@ -1,9 +1,12 @@
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-code
 *.o
 *.out
 .vscode/
 .idea/
+code
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.d
+
+
