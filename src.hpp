@@ -156,9 +156,15 @@ public:
         
         iterator& operator++() {
             ++index;
-            while (index >= block->end && block->next) {
-                block = block->next;
-                index = block->start;
+            // Skip to next non-empty block if necessary
+            while (block && index >= block->end) {
+                if (block->next) {
+                    block = block->next;
+                    index = block->start;
+                } else {
+                    // We're at or past the end
+                    break;
+                }
             }
             return *this;
         }
@@ -170,11 +176,27 @@ public:
         }
         
         iterator& operator--() {
-            while (index <= block->start && block->prev) {
-                block = block->prev;
-                index = block->end;
+            // Special case: if we're at block->end (like end() iterator), move back one
+            if (index == block->end) {
+                if (index > block->start) {
+                    --index;
+                    return *this;
+                }
+                // Block is empty, move to previous block
+                if (block->prev) {
+                    block = block->prev;
+                    index = block->end - 1;
+                }
+                return *this;
             }
-            if (index > block->start) {
+            
+            // Normal case: if we're at the start of the current block, move to previous block
+            if (index == block->start) {
+                if (block->prev) {
+                    block = block->prev;
+                    index = block->end - 1;
+                }
+            } else {
                 --index;
             }
             return *this;
@@ -298,9 +320,15 @@ public:
         
         const_iterator& operator++() {
             ++index;
-            while (index >= block->end && block->next) {
-                block = block->next;
-                index = block->start;
+            // Skip to next non-empty block if necessary
+            while (block && index >= block->end) {
+                if (block->next) {
+                    block = block->next;
+                    index = block->start;
+                } else {
+                    // We're at or past the end
+                    break;
+                }
             }
             return *this;
         }
@@ -312,11 +340,27 @@ public:
         }
         
         const_iterator& operator--() {
-            while (index <= block->start && block->prev) {
-                block = block->prev;
-                index = block->end;
+            // Special case: if we're at block->end (like end() iterator), move back one
+            if (index == block->end) {
+                if (index > block->start) {
+                    --index;
+                    return *this;
+                }
+                // Block is empty, move to previous block
+                if (block->prev) {
+                    block = block->prev;
+                    index = block->end - 1;
+                }
+                return *this;
             }
-            if (index > block->start) {
+            
+            // Normal case: if we're at the start of the current block, move to previous block
+            if (index == block->start) {
+                if (block->prev) {
+                    block = block->prev;
+                    index = block->end - 1;
+                }
+            } else {
                 --index;
             }
             return *this;
