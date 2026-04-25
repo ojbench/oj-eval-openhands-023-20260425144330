@@ -15,13 +15,19 @@ private:
         T* data;
         int start;
         int end;
+        int capacity;
         Block* prev;
         Block* next;
         
-        Block() : data(new T[BLOCK_SIZE]), start(0), end(0), prev(nullptr), next(nullptr) {}
+        Block() : start(0), end(0), capacity(BLOCK_SIZE), prev(nullptr), next(nullptr) {
+            data = (T*)::operator new(sizeof(T) * BLOCK_SIZE);
+        }
         
         ~Block() {
-            delete[] data;
+            for (int i = start; i < end; ++i) {
+                data[i].~T();
+            }
+            ::operator delete(data);
         }
         
         int size() const {
@@ -29,7 +35,7 @@ private:
         }
         
         bool full() const {
-            return end >= BLOCK_SIZE;
+            return end >= capacity;
         }
         
         bool empty() const {
@@ -514,7 +520,8 @@ public:
             new_block->prev = tail;
             tail = new_block;
         }
-        tail->data[tail->end++] = value;
+        new (tail->data + tail->end) T(value);
+        ++tail->end;
         ++len;
     }
     
@@ -522,6 +529,7 @@ public:
         if (empty()) throw container_is_empty();
         
         --tail->end;
+        tail->data[tail->end].~T();
         --len;
         
         if (tail->empty() && tail->prev) {
@@ -538,15 +546,17 @@ public:
             new_block->next = head;
             head->prev = new_block;
             head = new_block;
-            head->start = head->end = BLOCK_SIZE;
+            head->start = head->end = head->capacity;
         }
-        head->data[--head->start] = value;
+        --head->start;
+        new (head->data + head->start) T(value);
         ++len;
     }
     
     void pop_front() {
         if (empty()) throw container_is_empty();
         
+        head->data[head->start].~T();
         ++head->start;
         --len;
         
