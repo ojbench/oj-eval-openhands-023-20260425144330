@@ -156,7 +156,7 @@ public:
         
         iterator& operator++() {
             ++index;
-            if (index >= block->end && block->next) {
+            while (index >= block->end && block->next) {
                 block = block->next;
                 index = block->start;
             }
@@ -170,11 +170,12 @@ public:
         }
         
         iterator& operator--() {
+            while (index <= block->start && block->prev) {
+                block = block->prev;
+                index = block->end;
+            }
             if (index > block->start) {
                 --index;
-            } else if (block->prev) {
-                block = block->prev;
-                index = block->end - 1;
             }
             return *this;
         }
@@ -297,7 +298,7 @@ public:
         
         const_iterator& operator++() {
             ++index;
-            if (index >= block->end && block->next) {
+            while (index >= block->end && block->next) {
                 block = block->next;
                 index = block->start;
             }
@@ -311,11 +312,12 @@ public:
         }
         
         const_iterator& operator--() {
+            while (index <= block->start && block->prev) {
+                block = block->prev;
+                index = block->end;
+            }
             if (index > block->start) {
                 --index;
-            } else if (block->prev) {
-                block = block->prev;
-                index = block->end - 1;
             }
             return *this;
         }
@@ -462,15 +464,23 @@ public:
         }
         if (pos == end()) {
             push_back(value);
-            return iterator(tail, tail->end - 1, this);
+            iterator result(tail, tail->end - 1, this);
+            return result;
         }
         
-        // For simplicity, rebuild
-        deque tmp;
+        // Count position from beginning
+        size_t insert_pos = 0;
         iterator it = begin();
         while (it != pos) {
-            tmp.push_back(*it);
+            ++insert_pos;
             ++it;
+        }
+        
+        // Rebuild
+        deque tmp;
+        it = begin();
+        for (size_t i = 0; i < insert_pos; ++i, ++it) {
+            tmp.push_back(*it);
         }
         tmp.push_back(value);
         while (it != end()) {
@@ -479,8 +489,11 @@ public:
         }
         *this = tmp;
         
+        // Return iterator to inserted element
         it = begin();
-        for (size_t i = 0; i < tmp.size() - 1 && *it != value; ++i, ++it);
+        for (size_t i = 0; i < insert_pos; ++i) {
+            ++it;
+        }
         return it;
     }
     
