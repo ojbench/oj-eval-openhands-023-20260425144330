@@ -182,9 +182,11 @@ public:
                     --index;
                     return *this;
                 }
-                // Block is empty, move to previous block
-                if (block->prev) {
+                // Block is empty, move to previous non-empty block
+                while (block->prev && block->start == block->end) {
                     block = block->prev;
+                }
+                if (block->end > block->start) {
                     index = block->end - 1;
                 }
                 return *this;
@@ -194,7 +196,13 @@ public:
             if (index == block->start) {
                 if (block->prev) {
                     block = block->prev;
-                    index = block->end - 1;
+                    // Skip empty blocks
+                    while (block->prev && block->start == block->end) {
+                        block = block->prev;
+                    }
+                    if (block->end > block->start) {
+                        index = block->end - 1;
+                    }
                 }
             } else {
                 --index;
@@ -346,9 +354,11 @@ public:
                     --index;
                     return *this;
                 }
-                // Block is empty, move to previous block
-                if (block->prev) {
+                // Block is empty, move to previous non-empty block
+                while (block->prev && block->start == block->end) {
                     block = block->prev;
+                }
+                if (block->end > block->start) {
                     index = block->end - 1;
                 }
                 return *this;
@@ -358,7 +368,13 @@ public:
             if (index == block->start) {
                 if (block->prev) {
                     block = block->prev;
-                    index = block->end - 1;
+                    // Skip empty blocks
+                    while (block->prev && block->start == block->end) {
+                        block = block->prev;
+                    }
+                    if (block->end > block->start) {
+                        index = block->end - 1;
+                    }
                 }
             } else {
                 --index;
